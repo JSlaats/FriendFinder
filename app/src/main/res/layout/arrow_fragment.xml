@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/arrow_fragment"
+    android:layout_width="fill_parent"
+    android:layout_height="200dp"
+    android:background="#AD000000"
+    tools:context=".ArrowFragment">
+
+    <ImageView
+        android:id="@+id/imageViewArrow"
+        android:layout_width="139dp"
+        android:layout_height="139dp"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true"
+        android:background="@drawable/white_cirkel"
+        android:contentDescription="@string/arrow"
+        app:srcCompat="@drawable/arrow_straight"
+        tools:src="@drawable/arrow_straight"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp"/>
+
+    <TextView
+        android:id="@+id/txtPercentage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="test"
+        android:textColor="@android:color/white" />
+</RelativeLayout>
