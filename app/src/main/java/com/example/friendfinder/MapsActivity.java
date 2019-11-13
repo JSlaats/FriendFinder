@@ -16,6 +16,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -27,6 +28,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private GoogleMap mMap;
     private ArrowFragment arrowFragment;
     private LocationMapAdapter locationMapAdapter;
+    private Marker selectedMarker;
 
     public void setArrowFragment(ArrowFragment arrowFragment) {
         this.arrowFragment = arrowFragment;
@@ -55,7 +57,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap.addMarker(new MarkerOptions().position(loc3).title("another friend"));
 
         mMap.animateCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition.Builder().target(loc).zoom(12.0f).build()));
-        //mMap.moveCamera(CameraUpdateFactory.newLatLng(loc));
     }
 
 
@@ -85,7 +86,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 @Override
                 public boolean onMarkerClick(Marker marker) {
                     if(mMap != null) {
-                        updateArrow(marker.getPosition());
+
+                        if(selectedMarker != null)selectedMarker.setIcon(null);
+                        marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+                        marker.showInfoWindow();
+                        selectedMarker = marker;
+
+                    //    arrowFragment.updateArrow();
                         return true;
                     }return false;
                 }
@@ -95,8 +102,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.ACCESS_FINE_LOCATION},1);
         }
     }
-    private void updateArrow(LatLng position){
-        this.arrowFragment.updateArrow(position);
+
+    public Marker getSelectedMarker() {
+        return selectedMarker;
+    }
+
+    public ArrowFragment getArrowFragment() {
+        return arrowFragment;
     }
 
     public LocationMapAdapter getLocationMapAdapter() {

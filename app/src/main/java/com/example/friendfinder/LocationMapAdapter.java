@@ -85,6 +85,8 @@ public class LocationMapAdapter {
             public void run() {
                 if (marker != null) {
                     marker.setPosition(location);
+
+
                 } else {
                     marker = map.addMarker(new MarkerOptions().position(location).title("My Location"));
 
