@@ -9,6 +9,7 @@ import androidx.annotation.Nullable;
 
 import com.example.friendfinder.MapsActivity;
 import com.example.friendfinder.data.User;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -18,11 +19,15 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Firestore {
     private FirebaseFirestore db;
@@ -157,6 +162,34 @@ public class Firestore {
                     Log.w(TAG, "Error registering user", e);
                 }
             });
+    }
+
+    public void saveData(Boolean online, LatLng location){
+        User user = activity.getUser();
+        if(user == null){Log.v(TAG,"SaveData: User is null.");return;}
+
+        Map<String,Object> data = new HashMap<>();
+        data.put("online",online);
+        data.put("lastOnline",new Date());
+        //only save location if its not null
+        if(location != null) {
+            data.put("lastLocation", new GeoPoint(location.latitude, location.longitude));
+        }
+        db.collection("users").document(user.getPhoneNumber())
+                .update(data)
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Log.d(TAG, "SaveData: Data succesfully saved in firestore!");
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.w(TAG, "SaveData: Error saving data to firestore", e);
+                    }
+                });
+        ;
     }
 
 

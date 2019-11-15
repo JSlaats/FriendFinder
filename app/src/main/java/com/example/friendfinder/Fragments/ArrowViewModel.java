@@ -26,6 +26,7 @@ public class ArrowViewModel extends ViewModel implements SensorEventListener {
 
     }
 
+    //start sensors
     public void initSensors(MapsActivity activity) {
         Log.v(TAG,"Initiating sensors: ");
         this.mapsActivity = activity;
@@ -36,6 +37,13 @@ public class ArrowViewModel extends ViewModel implements SensorEventListener {
         mSensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_NORMAL);
         mSensorManager.registerListener(this, magnetometer, SensorManager.SENSOR_DELAY_NORMAL);
 
+    }
+
+    //stop sensors when app isnt in forground to save battery life
+    public void stopSensors(){
+        Log.v(TAG,"Stopping sensors: ");
+        mSensorManager.unregisterListener(this,accelerometer);
+        mSensorManager.unregisterListener(this,magnetometer);
     }
 
     public float getAngle(LatLng myPosition, LatLng friendPosition){

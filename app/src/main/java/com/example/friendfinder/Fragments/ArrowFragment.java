@@ -52,13 +52,38 @@ public class ArrowFragment extends Fragment  {
 
         this.activity = (MapsActivity) getActivity();
         activity.setArrowFragment(this);
-        mViewModel.initSensors(activity);
 
         // TODO: Use the ViewModel
 
     }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+        mViewModel.initSensors(activity);
 
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        mViewModel.initSensors(activity);
+
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        mViewModel.stopSensors();
+
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        mViewModel.stopSensors();
+
+    }
 
     void updateArrow(float myDirection){
 

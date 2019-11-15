@@ -1,59 +1,51 @@
 package com.example.friendfinder;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-
 import android.Manifest;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.text.format.DateUtils;
 import android.util.Log;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+
 import com.example.friendfinder.Fragments.ArrowFragment;
 import com.example.friendfinder.Fragments.FriendListFragment;
 import com.example.friendfinder.data.User;
 import com.example.friendfinder.persistence.Firestore;
-import com.google.android.gms.maps.CameraUpdateFactory;
+import com.example.friendfinder.util.Util;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, FriendListFragment.OnListFragmentInteractionListener {
 
     private static final String TAG = MapsActivity.class.getName();
+
     private GoogleMap mMap;
     private ArrowFragment arrowFragment;
     private LocationMapAdapter locationMapAdapter;
+    private PropertyChangeListener listener;
+
+    private User user;
     private Marker selectedMarker;
     private Map<String,Marker> markers;
-    private User user;
-    public PropertyChangeListener listener;
-
-
+    private BitmapDescriptor iconColorOnline;
+    private BitmapDescriptor iconColorOffline;
+    private BitmapDescriptor iconColorSelected;
     private String MY_PHONE_NUMBER = "31611507210";
-
-    BitmapDescriptor iconColorOnline  ;
-    BitmapDescriptor iconColorOffline ;
-    BitmapDescriptor iconColorSelected;
-
-
-    public void setArrowFragment(ArrowFragment arrowFragment) {
-        this.arrowFragment = arrowFragment;
-
-    }
+    private Firestore firestore;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,19 +60,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         iconColorOffline     = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED);
         iconColorSelected    = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN);
         markers = new HashMap<>();
-    }
-
-
-
-    private void addMarkers(){
-        LatLng loc = new LatLng(51.457704, 5.482136);
-        LatLng loc2 = new LatLng(51.503364, 5.370738);
-        LatLng loc3 = new LatLng(51.458483, 5.542588);
-
-        mMap.addMarker(new MarkerOptions().position(loc2).title("Friend"));
-        mMap.addMarker(new MarkerOptions().position(loc3).title("another friend"));
-
-        mMap.animateCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition.Builder().target(loc).zoom(12.0f).build()));
+        this.firestore = new Firestore(this);
     }
 
 
@@ -104,10 +84,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             mMap.setMyLocationEnabled(true);
             this.locationMapAdapter = new LocationMapAdapter(this,mMap);
             locationMapAdapter.startLocationUpdates();
-
-
-            new Firestore(this).loadUser(MY_PHONE_NUMBER);
-
+            //load user data
+            firestore.loadUser(MY_PHONE_NUMBER);
 
             mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
                 @Override
@@ -140,10 +118,53 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.ACCESS_FINE_LOCATION},1);
         }
     }
+//region lifecycle
+    @Override
+    protected void onResume() {
+        super.onResume();
+        try{
+            firestore.saveData(true, Util.LocationToLatLng(getLocationMapAdapter().getLastLocation()));
+            user.setOnline(true);
+            user.setLastOnline(new Date());
+            user.setLastLocation(getLocationMapAdapter().getLastLocation());
+        }catch(Exception ex){
+            Log.e(TAG,"OnResume: Saving failed: LastLocation not initiated yet. "+ex);
+        }
+    }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+        try{
+        firestore.saveData(false, Util.LocationToLatLng(getLocationMapAdapter().getLastLocation()));
+        user.setOnline(false);
+        user.setLastOnline(new Date());
+        }catch(Exception ex){
+            Log.e(TAG,"OnPause: Saving failed. "+ex);
+        }
+    }
 
+    @Override
+    protected void onStop() {
+        super.onStop();
+        try{
+        firestore.saveData(false, Util.LocationToLatLng(getLocationMapAdapter().getLastLocation()));
+        user.setOnline(false);
+        user.setLastOnline(new Date());
+        }catch(Exception ex){
+            Log.e(TAG,"OnStop: Saving failed. "+ex);
+        }
+    }
+
+//endregion
+
+    //region Getters and Setters
     public Marker getSelectedMarker() {
         return selectedMarker;
+    }
+
+    public void setArrowFragment(ArrowFragment arrowFragment) {
+        this.arrowFragment = arrowFragment;
     }
 
     public ArrowFragment getArrowFragment() {
@@ -159,9 +180,16 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public void setUser(User user) {
+        user.setOnline(true);
+        user.setLastOnline(new Date());
         this.user = user;
+        try {
+            firestore.saveData(true, Util.LocationToLatLng(getLocationMapAdapter().getLastLocation()));
+        }catch(Exception ex){
+            Log.e(TAG,"setUser: Saving failed. "+ex);
+         }
     }
-
+    //endregion
 
     public void addFriend(User friend){
         this.user.addFriend(friend);
