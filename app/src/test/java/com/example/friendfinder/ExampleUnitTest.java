@@ -1,5 +1,8 @@
 package com.example.friendfinder;
 
+import com.example.friendfinder.data.User;
+import com.example.friendfinder.persistence.Firestore;
+
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -13,5 +16,12 @@ public class ExampleUnitTest {
     @Test
     public void addition_isCorrect() {
         assertEquals(4, 2 + 2);
+    }
+
+    @Test
+    public void testFirestoreRegister() {
+//        User user = new User("31600000000","Test User");
+//        Firestore firestore = new Firestore();
+//        firestore.register(user);
     }
 }

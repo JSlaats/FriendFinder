@@ -1,8 +1,7 @@
-package com.example.friendfinder;
+package com.example.friendfinder.Fragments;
 
 import androidx.lifecycle.ViewModelProviders;
 
-import android.graphics.Matrix;
 import android.location.Location;
 import android.os.Bundle;
 
@@ -17,11 +16,12 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.google.android.gms.maps.GoogleMap;
+import com.example.friendfinder.MapsActivity;
+import com.example.friendfinder.R;
+import com.example.friendfinder.data.User;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
 
-public class ArrowFragment extends Fragment {
+public class ArrowFragment extends Fragment  {
 
     private static final String TAG = ArrowFragment.class.getName();
     private ArrowViewModel mViewModel;
@@ -71,24 +71,24 @@ public class ArrowFragment extends Fragment {
             float[] result = new float[1];
             Location.distanceBetween(lastLocation.getLatitude(),lastLocation.getLongitude(),activeMarker.latitude,activeMarker.longitude,result);
             Log.v(TAG,"distanceBetween: "+String.format("%.0f",result[0])+" meter");
-            updateText(String.format("%.0f",result[0])+" meter");
+            updateDistanceLabel(String.format("%.0f",result[0]));
 
-            //
             float angle = mViewModel.angleFromCoordinate(loc, activeMarker);
             float resultAngle = myDirection-angle;
             if(resultAngle < 0)resultAngle += 360;
 
-            Log.v(TAG,"Angle: "+angle+" | Direction: "+myDirection+"| result: "+resultAngle+"");
+        //    Log.v(TAG,"Angle: "+angle+" | Direction: "+myDirection+"| result: "+resultAngle+"");
 
             mTxtPercentage.setText("angle: " + resultAngle + " degrees");
             mImageViewArrow.setRotation(resultAngle);
         }
     }
 
-    void updateText(String text){
+    void updateDistanceLabel(String meters){
+
+        String text = "Distance: "+meters+ " meter";
         this.mTxtDistance.setText(text);
     }
-
 
 
 }

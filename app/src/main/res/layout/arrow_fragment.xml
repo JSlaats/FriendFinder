@@ -6,7 +6,7 @@
     android:layout_width="fill_parent"
     android:layout_height="200dp"
     android:background="#AD000000"
-    tools:context=".ArrowFragment">
+    tools:context=".Fragments.ArrowFragment">
 
     <ImageView
         android:id="@+id/imageViewArrow"
@@ -27,9 +27,12 @@
         android:layout_height="wrap_content"
         android:layout_above="@+id/imageViewArrow"
         android:layout_alignStart="@+id/imageViewArrow"
-        android:layout_marginStart="56dp"
-        android:layout_marginBottom="11dp"
+        android:layout_alignParentTop="true"
+        android:layout_marginStart="57dp"
+        android:layout_marginTop="7dp"
+        android:layout_marginBottom="4dp"
         android:text="test"
+        android:textAlignment="center"
         android:textColor="@android:color/white" />
 
     <TextView
@@ -41,5 +44,6 @@
         android:layout_marginEnd="-98dp"
         android:layout_toStartOf="@+id/imageViewArrow"
         android:text="Distance"
+        android:textAlignment="textStart"
         android:textColor="@android:color/white" />
 </RelativeLayout>

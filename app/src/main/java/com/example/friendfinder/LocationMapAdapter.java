@@ -89,6 +89,7 @@ public class LocationMapAdapter {
 
                 } else {
                     marker = map.addMarker(new MarkerOptions().position(location).title("My Location"));
+                    map.animateCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition.Builder().target(location).zoom(11.0f).build()));
 
                 }
 

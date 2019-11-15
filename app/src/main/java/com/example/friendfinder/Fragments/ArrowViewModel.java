@@ -1,4 +1,4 @@
-package com.example.friendfinder;
+package com.example.friendfinder.Fragments;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -6,14 +6,12 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.location.Location;
 import android.util.Log;
 
 import androidx.lifecycle.ViewModel;
 
+import com.example.friendfinder.MapsActivity;
 import com.google.android.gms.maps.model.LatLng;
-
-import java.text.DecimalFormat;
 
 
 public class ArrowViewModel extends ViewModel implements SensorEventListener {
@@ -115,7 +113,7 @@ public class ArrowViewModel extends ViewModel implements SensorEventListener {
                     if(Math.abs(shortenedRotation - this.direction) >= 4) {
                         this.direction = shortenedRotation;
 
-                        Log.v(TAG, "changed direction to " + this.direction);
+                //        Log.v(TAG, "changed direction to " + this.direction);
                         mapsActivity.getArrowFragment().updateArrow(direction);
                     }
                 }
