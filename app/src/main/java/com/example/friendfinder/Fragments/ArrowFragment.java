@@ -2,6 +2,7 @@ package com.example.friendfinder.Fragments;
 
 import androidx.lifecycle.ViewModelProviders;
 
+import android.hardware.GeomagneticField;
 import android.location.Location;
 import android.os.Bundle;
 
@@ -18,7 +19,6 @@ import android.widget.TextView;
 
 import com.example.friendfinder.MapsActivity;
 import com.example.friendfinder.R;
-import com.example.friendfinder.data.User;
 import com.google.android.gms.maps.model.LatLng;
 
 public class ArrowFragment extends Fragment  {
@@ -30,6 +30,7 @@ public class ArrowFragment extends Fragment  {
     private TextView mTxtDistance;
 
     private MapsActivity activity;
+    private float distance;
 
     public static ArrowFragment newInstance() {
         return new ArrowFragment();
@@ -56,7 +57,7 @@ public class ArrowFragment extends Fragment  {
         // TODO: Use the ViewModel
 
     }
-
+//region lifecycle
     @Override
     public void onStart() {
         super.onStart();
@@ -84,33 +85,42 @@ public class ArrowFragment extends Fragment  {
         mViewModel.stopSensors();
 
     }
-
-    void updateArrow(float myDirection){
+//endregion
+    void updateArrow(float heading){
 
         if(activity.getSelectedMarker() != null) {
+            //get locations
             LatLng activeMarker = activity.getSelectedMarker().getPosition();
             Location lastLocation = activity.getLocationMapAdapter().getLastLocation();
-            LatLng loc = new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude());
+            LatLng myLocation = new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude());
+
 
             //calculate distance
             float[] result = new float[1];
             Location.distanceBetween(lastLocation.getLatitude(),lastLocation.getLongitude(),activeMarker.latitude,activeMarker.longitude,result);
-            Log.v(TAG,"distanceBetween: "+String.format("%.0f",result[0])+" meter");
-            updateDistanceLabel(String.format("%.0f",result[0]));
+            if(result[0] != this.distance) {
+                this.distance = result[0];
+                updateDistanceLabel(String.format("%.0f", result[0]));
+            }
+            //calculate bearing
+            float bearing = mViewModel.calculateBearing(myLocation, activeMarker);
 
-            float angle = mViewModel.angleFromCoordinate(loc, activeMarker);
-            float resultAngle = myDirection-angle;
-            if(resultAngle < 0)resultAngle += 360;
+            GeomagneticField geoField = new GeomagneticField(
+                    Double.valueOf(lastLocation.getLatitude()).floatValue(),
+                    Double.valueOf(lastLocation.getLongitude()).floatValue(),
+                    Double.valueOf(lastLocation.getAltitude()).floatValue(),
+                    System.currentTimeMillis()
+            );
+            heading += geoField.getDeclination();
 
-        //    Log.v(TAG,"Angle: "+angle+" | Direction: "+myDirection+"| result: "+resultAngle+"");
+            float resultAngle = mViewModel.calculateAngle(heading,bearing,geoField);
 
-            mTxtPercentage.setText("angle: " + resultAngle + " degrees");
             mImageViewArrow.setRotation(resultAngle);
         }
     }
 
-    void updateDistanceLabel(String meters){
 
+    void updateDistanceLabel(String meters){
         String text = "Distance: "+meters+ " meter";
         this.mTxtDistance.setText(text);
     }

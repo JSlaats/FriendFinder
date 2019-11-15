@@ -2,10 +2,12 @@ package com.example.friendfinder.Fragments;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.hardware.GeomagneticField;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.location.Location;
 import android.util.Log;
 
 import androidx.lifecycle.ViewModel;
@@ -13,7 +15,7 @@ import androidx.lifecycle.ViewModel;
 import com.example.friendfinder.MapsActivity;
 import com.google.android.gms.maps.model.LatLng;
 
-
+//compass to coordinates: https://stackoverflow.com/questions/4308262/calculate-compass-bearing-heading-to-location-in-android
 public class ArrowViewModel extends ViewModel implements SensorEventListener {
 
     private static final String TAG = ArrowViewModel.class.getName();
@@ -61,8 +63,9 @@ public class ArrowViewModel extends ViewModel implements SensorEventListener {
         return angle;
     }
 
-    public float angleFromCoordinate(LatLng myPosition, LatLng friendPosition) {
 
+
+    public float calculateBearing(LatLng myPosition, LatLng friendPosition) {
         double lat1= myPosition.latitude;
         double long1= myPosition.longitude;
         double lat2= friendPosition.latitude;
@@ -78,27 +81,56 @@ public class ArrowViewModel extends ViewModel implements SensorEventListener {
 
         brng = Math.toDegrees(brng);
         brng = (brng + 360) % 360;
-        //brng = 360 - brng; // count degrees counter-clockwise - remove to make clockwise
+        brng = 360 - brng; // count degrees counter-clockwise - remove to make clockwise
 
         return (float)brng;
-
     }
 
+    public float calculateAngle(float heading, float bearing, GeomagneticField geoField){
 
+        heading = (bearing - heading) * -1;
 
-    float[] mGravity;
-    float[] mGeomagnetic;
+       // heading = bearing - (bearing + heading);
+        return Math.round(normalizeDegree(heading));
+    }
+    private float normalizeDegree(float value) {
+        if (value >= 0.0f && value <= 180.0f) {
+            return value;
+        } else {
+            return 180 + (180 + value);
+        }
+    }
 
-    private float direction;
+    // http://blog.thomnichols.org/2011/08/smoothing-sensor-data-with-a-low-pass-filter
+    // http://blog.thomnichols.org/2012/06/smoothing-sensor-data-part-2
+    /*
+     * time smoothing constant for low-pass filter
+     * 0 ≤ alpha ≤ 1 ; a smaller value basically means more smoothing
+     * See: http://en.wikipedia.org/wiki/Low-pass_filter#Discrete-time_realization
+     */
+    static final float ALPHA = 0.15f;
 
-    @SuppressLint("DefaultLocale")
+    protected float[] lowPass( float[] input, float[] output ) {
+        if ( output == null ) return input;
+
+        for ( int i=0; i<input.length; i++ ) {
+            output[i] = output[i] + ALPHA * (input[i] - output[i]);
+        }
+        return output;
+    }
+
+    private float[] mGravity;
+    private float[] mGeomagnetic;
+
+    private float heading;
+
     @Override
     public void onSensorChanged(SensorEvent event) {
         if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER)
-            mGravity = event.values;
+            mGravity = lowPass( event.values.clone(), mGravity );
 
         if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD)
-            mGeomagnetic = event.values;
+            mGeomagnetic = lowPass( event.values.clone(),mGeomagnetic);
 
         if (mGravity != null && mGeomagnetic != null) {
             float R[] = new float[9];
@@ -112,17 +144,13 @@ public class ArrowViewModel extends ViewModel implements SensorEventListener {
 
                 float azimut = orientation[0];
                 float angle = -azimut * 360 / (2 * 3.14159f);
-                if(angle < 0){
-                    angle += 360;
-                }
-                float shortenedRotation = Float.parseFloat(String.format("%.0f",angle));
+                if(angle < 0){ angle += 360; }
 
-                if(shortenedRotation != this.direction){
-                    if(Math.abs(shortenedRotation - this.direction) >= 4) {
-                        this.direction = shortenedRotation;
-
-                //        Log.v(TAG, "changed direction to " + this.direction);
-                        mapsActivity.getArrowFragment().updateArrow(direction);
+                if(angle != this.heading){
+                    //stop the overload of data
+                    if(Math.abs(Float.parseFloat(String.format("%.0f",angle)) - Float.parseFloat(String.format("%.0f",this.heading))) >= 4) {
+                        this.heading = angle;
+                        mapsActivity.getArrowFragment().updateArrow(heading);
                     }
                 }
             }
