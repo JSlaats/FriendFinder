@@ -4,46 +4,60 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/arrow_fragment"
     android:layout_width="fill_parent"
-    android:layout_height="200dp"
+    android:layout_height="225dp"
     android:background="#AD000000"
+    android:visibility="invisible"
     tools:context=".Fragments.ArrowFragment">
 
     <ImageView
         android:id="@+id/imageViewArrow"
         android:layout_width="139dp"
         android:layout_height="139dp"
-        android:layout_centerVertical="true"
         android:layout_centerHorizontal="true"
+        android:layout_below="@id/txtLastOnline"
         android:background="@drawable/white_cirkel"
         android:contentDescription="@string/arrow"
+        android:layout_marginTop="5dp"
         app:srcCompat="@drawable/arrow_straight"
-        tools:src="@drawable/arrow_straight"
-        android:paddingTop="10dp"
-        android:paddingBottom="10dp"/>
+        tools:src="@drawable/arrow_straight" />
 
     <TextView
-        android:id="@+id/txtPercentage"
+        android:id="@+id/txtFriendName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_above="@+id/imageViewArrow"
-        android:layout_alignStart="@+id/imageViewArrow"
         android:layout_alignParentTop="true"
-        android:layout_marginStart="57dp"
-        android:layout_marginTop="7dp"
-        android:layout_marginBottom="4dp"
-        android:text="test"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="5dp"
+
+        android:text="FriendName"
         android:textAlignment="center"
-        android:textColor="@android:color/white" />
+        android:textColor="@android:color/white"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/txtLastOnline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/txtFriendName"
+        android:layout_marginTop="5dp"
+
+        android:text="Last seen: -"
+        android:textAlignment="center"
+        android:textColor="@android:color/white"/>
 
     <TextView
         android:id="@+id/txtDistance"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/txtPercentage"
-        android:layout_marginTop="144dp"
-        android:layout_marginEnd="-98dp"
-        android:layout_toStartOf="@+id/imageViewArrow"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/imageViewArrow"
+        android:layout_marginTop="5dp"
+        android:layout_marginBottom="5dp"
+
         android:text="Distance"
-        android:textAlignment="textStart"
-        android:textColor="@android:color/white" />
+        android:textAlignment="center"
+        android:textColor="@android:color/white"
+        />
 </RelativeLayout>

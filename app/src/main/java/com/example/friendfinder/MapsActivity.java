@@ -90,9 +90,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 @Override
                 public boolean onMarkerClick(Marker marker) {
                     if(mMap != null) {
-
                         if(selectedMarker == marker){
-                            selectedMarker = null;
+                           // setSelectedMarker(null);
                             return true;
                         }
                         if(selectedMarker != null){
@@ -104,9 +103,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                             }
                         }
                         marker.setIcon(iconColorSelected);
+                        setSelectedMarker(marker);
                         marker.showInfoWindow();
-                        selectedMarker = marker;
-                        getArrowFragment().getmViewModel().setActiveMarker(selectedMarker.getPosition());
+
                     //    arrowFragment.updateArrow();
                         return true;
                     }return false;
@@ -160,6 +159,31 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     //region Getters and Setters
     public Marker getSelectedMarker() {
         return selectedMarker;
+    }
+
+    public void setSelectedMarker(Marker selectedMarker) {
+        this.selectedMarker = selectedMarker;
+        arrowFragment.setVisibility(true);
+
+        User friend = user.findFriendByName(selectedMarker.getTitle());
+       // Log.e(TAG,selectedMarker.getTitle()+"  |  "+friend.getNickName());
+
+        if(friend != null){
+            arrowFragment.updateFriendName(friend.getNickName());
+            String isOnlineString;
+            if(friend.isOnline()) {
+                isOnlineString = "Online";
+            }else{
+                String lastSeenString = DateUtils.getRelativeTimeSpanString(friend.getLastOnline().getTime()).toString();
+                isOnlineString = "Last Seen: "+lastSeenString;
+            }
+            arrowFragment.updateLastOnline(isOnlineString);
+        }else{
+            arrowFragment.updateFriendName(selectedMarker.getTitle());
+            arrowFragment.updateLastOnline("");
+        }
+        getArrowFragment().getmViewModel().setActiveMarker(selectedMarker.getPosition());
+
     }
 
     public void setArrowFragment(ArrowFragment arrowFragment) {

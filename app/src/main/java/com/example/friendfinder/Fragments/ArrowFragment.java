@@ -20,7 +20,8 @@ public class ArrowFragment extends Fragment  {
     private static final String TAG = ArrowFragment.class.getName();
     private ArrowViewModel mViewModel;
     private ImageView mImageViewArrow;
-    private TextView mTxtPercentage;
+    private TextView mTxtFriendName;
+    private TextView mTxtLastOnline;
     private TextView mTxtDistance;
 
     private MapsActivity activity;
@@ -41,7 +42,8 @@ public class ArrowFragment extends Fragment  {
         mViewModel = ViewModelProviders.of(this).get(ArrowViewModel.class);
 
         mImageViewArrow = getView().findViewById(R.id.imageViewArrow);
-        mTxtPercentage = getView().findViewById(R.id.txtPercentage);
+        mTxtFriendName = getView().findViewById(R.id.txtFriendName);
+        mTxtLastOnline = getView().findViewById(R.id.txtLastOnline);
         mTxtDistance = getView().findViewById(R.id.txtDistance);
 
         this.activity = (MapsActivity) getActivity();
@@ -78,7 +80,6 @@ public class ArrowFragment extends Fragment  {
     }
 //endregion
 
-
     public ArrowViewModel getmViewModel() {
         return mViewModel;
     }
@@ -92,5 +93,16 @@ public class ArrowFragment extends Fragment  {
         mTxtDistance.setText(text);
     }
 
+    public void updateFriendName(String friendName){
+        mTxtFriendName.setText(friendName);
+    }
+
+    public void updateLastOnline(String lastOnline){
+        mTxtLastOnline.setText(lastOnline);
+    }
+    public void setVisibility(boolean show){
+        if(show) getView().setVisibility(View.VISIBLE);
+        else getView().setVisibility(View.INVISIBLE);
+    }
 
 }

@@ -139,4 +139,10 @@ public class User {
     public void addFriend(User user) {
         friends.add(user);
     }
+    public User findFriendByName(String nickname){
+        for(User friend : getFriends()){
+            if(friend.getNickName().equals(nickname))return friend;
+        }
+        return null;
+    }
 }
