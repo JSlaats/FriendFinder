@@ -9,10 +9,12 @@ import com.google.firebase.firestore.GeoPoint;
 import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 public class User {
     private static final String TAG = User.class.getName();
-    private String phoneNumber;
+    private String UID;
     private String nickname;
     private Location lastLocation;
     private Date lastOnline;
@@ -21,8 +23,8 @@ public class User {
 
     public PropertyChangeSupport changes = new PropertyChangeSupport(this);
 
-    public User(String phoneNumber, String name, GeoPoint lastLocation, Date lastOnline, boolean online, ArrayList<User> friends) {
-        this.phoneNumber = phoneNumber;
+    public User(String UID, String name, GeoPoint lastLocation, Date lastOnline, boolean online, ArrayList<User> friends) {
+        this.UID = UID;
         this.nickname = name;
         this.lastOnline = lastOnline;
         this.online = online;
@@ -37,8 +39,19 @@ public class User {
 
     }
 
-    public User(String phoneNumber, String name, Location lastLocation, Date lastOnline, boolean online) {
-        this.phoneNumber = phoneNumber;
+    public Map<String,Object> getUser(){
+        Map<String, Object> data = new HashMap<>();
+        data.put("UID", getUID());
+        data.put("nickname", getNickname());
+        data.put("lastLocation", getLastLocation());
+        data.put("lastOnline", getLastOnline());
+        data.put("online", isOnline());
+        data.put("friends", getFriendsRef());
+        return data;
+    }
+
+    public User(String UID, String name, Location lastLocation, Date lastOnline, boolean online) {
+        this.UID = UID;
         this.nickname = name;
         this.lastLocation = lastLocation;
         this.lastOnline = lastOnline;
@@ -47,8 +60,8 @@ public class User {
     }
 
 
-    public User(String phoneNumber, String name) {
-        this.phoneNumber = phoneNumber;
+    public User(String UID, String name) {
+        this.UID = UID;
         this.nickname = name;
         this.lastLocation = null;
         this.lastOnline = new Date();
@@ -72,7 +85,7 @@ public class User {
         Log.v(TAG,"Updated user: "+nickname);
     }
 
-    public String getNickName() {
+    public String getNickname() {
         return nickname;
     }
 
@@ -84,6 +97,7 @@ public class User {
 //        return lastLocation;
 //    }
     public LatLng getLastLocation(){
+        if(this.lastLocation == null)return null;
         return new LatLng(this.lastLocation.getLatitude(),this.lastLocation.getLongitude());
     }
 
@@ -95,20 +109,20 @@ public class User {
         return online;
     }
 
-    public String getPhoneNumber() {
-        return phoneNumber;
+    public String getUID() {
+        return UID;
     }
 
 //    public void setLastLocation(Location lastLocation) {
 //        this.lastLocation = lastLocation;
 //    }
 
-    public void setLastLocation(GeoPoint lastLocation) {
-        Location location = new Location("");
-        location.setLatitude(lastLocation.getLatitude());
-        location.setLongitude(lastLocation.getLongitude());
-        this.lastLocation = location;
-    }
+//    public void setLastLocation(GeoPoint lastLocation) {
+//        Location location = new Location("");
+//        location.setLatitude(lastLocation.getLatitude());
+//        location.setLongitude(lastLocation.getLongitude());
+//        this.lastLocation = location;
+//    }
 
     public void setLastLocation(Location location){
         this.changes.firePropertyChange("lastLocation",this.lastLocation,location);
@@ -132,6 +146,14 @@ public class User {
         return friends;
     }
 
+    public ArrayList<String> getFriendsRef(){
+        ArrayList<String> friendArr = new ArrayList<>();
+        for(User friend : getFriends()){
+            friendArr.add(friend.getUID());
+        }
+        return friendArr;
+    }
+
     public void setFriends(ArrayList<User> friends) {
         this.friends = friends;
     }
@@ -141,7 +163,7 @@ public class User {
     }
     public User findFriendByName(String nickname){
         for(User friend : getFriends()){
-            if(friend.getNickName().equals(nickname))return friend;
+            if(friend.getNickname().equals(nickname))return friend;
         }
         return null;
     }

@@ -38,8 +38,8 @@ public class MyFriendListRecyclerViewAdapter extends RecyclerView.Adapter<MyFrie
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
         holder.mItem = mValues.get(position);
-        holder.mIdView.setText(mValues.get(position).getPhoneNumber());
-        holder.mContentView.setText(mValues.get(position).getNickName());
+        holder.mIdView.setText(mValues.get(position).getUID());
+        holder.mContentView.setText(mValues.get(position).getNickname());
 
         holder.mView.setOnClickListener(new View.OnClickListener() {
             @Override

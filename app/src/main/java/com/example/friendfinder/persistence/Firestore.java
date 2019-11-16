@@ -1,6 +1,5 @@
 package com.example.friendfinder.persistence;
 
-import android.content.Context;
 import android.location.Location;
 import android.util.Log;
 
@@ -14,16 +13,15 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.GeoPoint;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -39,8 +37,8 @@ public class Firestore {
         this.activity = activity;
     }
 
-    public void loadUser(String phoneNumber){
-        final DocumentReference docRef = db.collection("users").document(phoneNumber);
+    public void loadUser(String UID){
+        final DocumentReference docRef = db.collection("users").document(UID);
         docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
@@ -55,7 +53,7 @@ public class Firestore {
                         activity.setUser(user);
 
                         //load friends
-                        List<DocumentReference> friendRefs = (List<DocumentReference>) document.get("friends");
+                        List<String> friendRefs = (List<String>) document.get("friends");
                         if(friendRefs != null) {
                             Log.v(TAG,"Fetching friends");
                             loadFriends(friendRefs);
@@ -65,6 +63,11 @@ public class Firestore {
 
                     } else {
                         Log.d(TAG, "No such document");
+                        FirebaseUser fbu = FirebaseAuth.getInstance().getCurrentUser();
+                        //register user
+                        if(fbu != null) {
+                            register(new User(fbu.getUid(), fbu.getDisplayName()));
+                        }
                     }
                 } else {
                     Log.d(TAG, "get failed with ", task.getException());
@@ -74,9 +77,10 @@ public class Firestore {
     }
 
 
-    public void loadFriends(List<DocumentReference> refs){
-        for(DocumentReference ref : refs) {
-            ref.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+    public void loadFriends(List<String> friendUIDs){
+        for(String friendUID : friendUIDs) {
+            db.collection("users").document(friendUID)
+                    .get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                 @Override
                 public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                     if (task.isSuccessful()) {
@@ -86,7 +90,7 @@ public class Firestore {
                             User friend = createUser(document);
                             //add friend to user.
                             activity.addFriend(friend);
-                            Log.d(TAG, "Added friend: "+friend.getNickName());
+                            Log.d(TAG, "Added friend: "+friend.getNickname());
 
                         } else {
                             Log.d(TAG, "Friend not found");
@@ -96,7 +100,7 @@ public class Firestore {
                     }
                 }
             });
-            addOnFriendChangeListener(ref);
+            addOnFriendChangeListener(friendUID);
         }
     }
 
@@ -110,8 +114,8 @@ public class Firestore {
         }
         //get User
         return new User(
-                document.getString("phonenumber"),
-                document.getString("name"),
+                document.getString("UID"),
+                document.getString("nickname"),
                 location,
                 document.getTimestamp("lastOnline").toDate(),
                 document.getBoolean("online")
@@ -119,8 +123,9 @@ public class Firestore {
         );
     }
 
-    private void addOnFriendChangeListener(DocumentReference ref){
-        ref.addSnapshotListener(new EventListener<DocumentSnapshot>() {
+    private void addOnFriendChangeListener(String friendUID){
+        db.collection("users").document(friendUID)
+        .addSnapshotListener(new EventListener<DocumentSnapshot>() {
             @Override
             public void onEvent(@Nullable final DocumentSnapshot snapshot, @Nullable FirebaseFirestoreException e) {
                 if (e != null) {
@@ -133,7 +138,7 @@ public class Firestore {
                     //get friend @ MapsActivity by id
                     //update friend
                     for (User user : activity.getUser().getFriends()) {
-                        if (user.getPhoneNumber().equals(snapshot.getString("phonenumber"))) {
+                        if (user.getUID().equals(snapshot.getString("UID"))) {
                             user.updateUser(createUser(snapshot));
 
                         }
@@ -146,14 +151,14 @@ public class Firestore {
 
     }
 
-    public void register(User user){
-        db.collection("users").document(user.getPhoneNumber())
-            .set(user)
+    public void register(final User user){
+        db.collection("users").document(user.getUID())
+            .set(user.getUser())
             .addOnSuccessListener(new OnSuccessListener<Void>() {
                 @Override
                 public void onSuccess(Void aVoid) {
                     Log.d(TAG, "User succesfully Registered!");
-
+                    loadUser(user.getUID());
                 }
             })
             .addOnFailureListener(new OnFailureListener() {
@@ -175,7 +180,7 @@ public class Firestore {
         if(location != null) {
             data.put("lastLocation", new GeoPoint(location.latitude, location.longitude));
         }
-        db.collection("users").document(user.getPhoneNumber())
+        db.collection("users").document(user.getUID())
                 .update(data)
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override

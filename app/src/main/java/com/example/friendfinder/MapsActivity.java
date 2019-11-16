@@ -1,10 +1,12 @@
 package com.example.friendfinder;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.text.format.DateUtils;
 import android.util.Log;
+import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -14,6 +16,8 @@ import com.example.friendfinder.Fragments.FriendListFragment;
 import com.example.friendfinder.data.User;
 import com.example.friendfinder.persistence.Firestore;
 import com.example.friendfinder.util.Util;
+import com.firebase.ui.auth.AuthUI;
+import com.firebase.ui.auth.IdpResponse;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
@@ -21,11 +25,15 @@ import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, FriendListFragment.OnListFragmentInteractionListener {
@@ -33,6 +41,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private static final String TAG = MapsActivity.class.getName();
 
     private GoogleMap mMap;
+    private SupportMapFragment mapFragment;
     private ArrowFragment arrowFragment;
     private LocationMapAdapter locationMapAdapter;
     private PropertyChangeListener listener;
@@ -43,26 +52,81 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private BitmapDescriptor iconColorOnline;
     private BitmapDescriptor iconColorOffline;
     private BitmapDescriptor iconColorSelected;
-    private String MY_PHONE_NUMBER = "31611507210";
     private Firestore firestore;
+    private FirebaseUser firebaseUser;
+
+    private static final int RC_SIGN_IN = 123;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
-        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
         arrowFragment = (ArrowFragment) getSupportFragmentManager().findFragmentById(R.id.arrow_fragment);
-        initFriendChangedListener();
+
         iconColorOnline      = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN);
         iconColorOffline     = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED);
         iconColorSelected    = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN);
         markers = new HashMap<>();
         this.firestore = new Firestore(this);
+
+        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
+        mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
+        mapFragment.getView().setVisibility(View.INVISIBLE);
+
+        initFriendChangedListener();
+
+        firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+
+        if(user == null) createSignInIntent();
+        else onCreateContinue();
+
+    }
+    private void onCreateContinue(){
+        mapFragment.getView().setVisibility(View.VISIBLE);
+        //load user data
+        firestore.loadUser(firebaseUser.getUid());
     }
 
+    public void createSignInIntent() {
+        // [START auth_fui_create_intent]
+        // Choose authentication providers
+        List<AuthUI.IdpConfig> providers = Arrays.asList(
+                new AuthUI.IdpConfig.GoogleBuilder().build()
+        );
 
+        // Create and launch sign-in intent
+        startActivityForResult(
+                AuthUI.getInstance()
+                        .createSignInIntentBuilder()
+                        .setAvailableProviders(providers)
+                        .build(),
+                RC_SIGN_IN);
+        // [END auth_fui_create_intent]
+    }
+    // [START auth_fui_result]
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == RC_SIGN_IN) {
+            IdpResponse response = IdpResponse.fromResultIntent(data);
+
+            if (resultCode == RESULT_OK) {
+                // Successfully signed in
+                firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+                onCreateContinue();
+                // ...
+            } else {
+                // Sign in failed. If response is null the user canceled the
+                // sign-in flow using the back button. Otherwise check
+                // response.getError().getErrorCode() and handle the error.
+                // ...
+            }
+        }
+    }
+    // [END auth_fui_result]
     /**
      * Manipulates the map once available.
      * This callback is triggered when the map is ready to be used.
@@ -83,8 +147,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             mMap.setMyLocationEnabled(true);
             this.locationMapAdapter = new LocationMapAdapter(this,mMap);
             locationMapAdapter.startLocationUpdates();
-            //load user data
-            firestore.loadUser(MY_PHONE_NUMBER);
+
 
             mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
                 @Override
@@ -163,13 +226,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     public void setSelectedMarker(Marker selectedMarker) {
         this.selectedMarker = selectedMarker;
+
         arrowFragment.setVisibility(true);
 
         User friend = user.findFriendByName(selectedMarker.getTitle());
-       // Log.e(TAG,selectedMarker.getTitle()+"  |  "+friend.getNickName());
+       // Log.e(TAG,selectedMarker.getTitle()+"  |  "+friend.getNickname());
 
         if(friend != null){
-            arrowFragment.updateFriendName(friend.getNickName());
+            arrowFragment.updateFriendName(friend.getNickname());
             String isOnlineString;
             if(friend.isOnline()) {
                 isOnlineString = "Online";
@@ -234,11 +298,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         Marker marker = mMap.addMarker(new MarkerOptions()
                 .position(friend.getLastLocation())
-                .title(friend.getNickName())
+                .title(friend.getNickname())
                 .snippet(onlineString)
                 .icon(iconColor));
         marker.setTag(friend.isOnline());
-        markers.put(friend.getPhoneNumber(),marker);
+        markers.put(friend.getUID(),marker);
     }
 
     private void initFriendChangedListener(){
@@ -246,7 +310,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void propertyChange(PropertyChangeEvent event) {
                 User friend = (User)event.getSource();
-                Marker marker = markers.get(friend.getPhoneNumber());
+                Marker marker = markers.get(friend.getUID());
 
                 switch(event.getPropertyName()){
                     case "lastLocation":
