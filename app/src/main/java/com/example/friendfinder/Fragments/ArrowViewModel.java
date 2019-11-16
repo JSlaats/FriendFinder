@@ -206,6 +206,11 @@ public class ArrowViewModel extends ViewModel implements SensorEventListener {
             });
         }
     }
+    public static LatLng midPoint(LatLng myLocation,LatLng targetLocation){
+        double lat = (myLocation.latitude+targetLocation.latitude)/2;
+        double lon = (myLocation.longitude+targetLocation.longitude)/2;
+        return new LatLng(lat,lon);
+    }
 //    public float getAngle(LatLng myPosition, LatLng friendPosition){
 //        float angle = (float) Math.toDegrees(
 //                Math.atan2(

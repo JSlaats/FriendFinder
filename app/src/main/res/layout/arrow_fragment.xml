@@ -60,4 +60,14 @@
         android:textAlignment="center"
         android:textColor="@android:color/white"
         />
+
+    <Button
+        android:id="@+id/btnMeetUp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:onClick="showMeetUpMenu"
+        android:text="Meet-up"
+        tools:ignore="OnClick" />
 </RelativeLayout>

@@ -15,13 +15,16 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.GeoPoint;
+import com.google.firebase.firestore.QuerySnapshot;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -37,7 +40,97 @@ public class Firestore {
         this.activity = activity;
     }
 
-    public void loadUser(String UID){
+    public void addMeetupPoint(GeoPoint midWayPoint,String myUID, String friendUID) {
+        ArrayList<String> userList = new ArrayList<>();
+        userList.add(myUID);
+        if(!friendUID.isEmpty())
+        userList.add(friendUID);
+
+        Map<String,Object> markerMap = new HashMap<>();
+        markerMap.put("location",midWayPoint);
+        markerMap.put("users",userList);
+
+        db.collection("meetup").document()
+            .set(markerMap)
+            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                @Override
+                public void onSuccess(Void aVoid) {
+                    Log.d(TAG, "MeetupPoint saved!");
+                    activity.removeTempMarker();
+                }
+            })
+            .addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    Log.w(TAG, "Error saving MeetupPoint", e);
+                }
+            });
+    }
+
+    public void updateMeetupPoint(GeoPoint location,String ref) {
+        db.collection("meetup").document(ref).update("location",location)
+            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                @Override
+                public void onSuccess(Void aVoid) {
+                    Log.d(TAG, "MeetupPoint updated!");
+                }
+            })
+            .addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    Log.w(TAG, "Error updating MeetupPoint", e);
+                }
+            });
+    }
+
+    public void removeMeetupPoint(String ref) {
+        //TODO:: Implement this. Change meetpoint button to remove when meetpoint is selected and run this fucntion.
+
+
+        db.collection("meetup").document(ref).delete()
+            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                @Override
+                public void onSuccess(Void aVoid) {
+                    Log.d(TAG, "MeetupPoint Deleted!");
+                }
+            })
+            .addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    Log.w(TAG, "Error deleting MeetupPoint", e);
+                }
+            });
+    }
+
+    private void addMeetupPointListener(String UID){
+        db.collection("meetup").whereArrayContains("users",UID).addSnapshotListener(new EventListener<QuerySnapshot>() {
+            @Override
+            public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException e) {
+                //meetup point added/changed
+                for (DocumentChange dc : value.getDocumentChanges()) {
+                    String reference = dc.getDocument().getReference().getId();
+                    Log.v(TAG,reference);
+                    switch (dc.getType()) {
+                        case ADDED:
+                            Log.d(TAG, "ADDED meet-up point: " + dc.getDocument().getData());
+                            activity.addMeetupPoint(reference,dc.getDocument().getGeoPoint("location"));
+                            break;
+                        case MODIFIED:
+                            Log.d(TAG, "MODIFIED meet-up point: " + dc.getDocument().getData());
+                            activity.updateMeetupPoint(reference,dc.getDocument().getGeoPoint("location"));
+                            break;
+                        case REMOVED:
+                            Log.d(TAG, "REMOVED meet-up point: " + dc.getDocument().getData());
+                            activity.removeMeetupPoint(reference);
+                            break;
+                    }
+                }
+
+            }
+        });
+    }
+
+    public void loadUser(final String UID){
         final DocumentReference docRef = db.collection("users").document(UID);
         docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
@@ -57,6 +150,7 @@ public class Firestore {
                         if(friendRefs != null) {
                             Log.v(TAG,"Fetching friends");
                             loadFriends(friendRefs);
+                            addMeetupPointListener(UID);
                         }else{
                             Log.v(TAG,"You have no friends. Sad...");
                         }
@@ -75,7 +169,6 @@ public class Firestore {
             }
         });
     }
-
 
     public void loadFriends(List<String> friendUIDs){
         for(String friendUID : friendUIDs) {
@@ -151,6 +244,7 @@ public class Firestore {
 
     }
 
+
     public void register(final User user){
         db.collection("users").document(user.getUID())
             .set(user.getUser())
@@ -194,8 +288,9 @@ public class Firestore {
                         Log.w(TAG, "SaveData: Error saving data to firestore", e);
                     }
                 });
-        ;
+
     }
+
     public void saveLocation(LatLng location){
         User user = activity.getUser();
         if(user == null){Log.v(TAG,"saveLocation: User is null.");return;}
@@ -219,7 +314,7 @@ public class Firestore {
                         Log.w(TAG, "saveLocation: Error saving Location to firestore", e);
                     }
                 });
-        ;
+
     }
 
 }

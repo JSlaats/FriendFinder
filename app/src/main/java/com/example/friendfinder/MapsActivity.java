@@ -7,27 +7,34 @@ import android.location.Location;
 import android.os.Bundle;
 import android.text.format.DateUtils;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
+import android.widget.PopupMenu;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
 import com.example.friendfinder.Fragments.ArrowFragment;
+import com.example.friendfinder.Fragments.ArrowViewModel;
 import com.example.friendfinder.Fragments.FriendListFragment;
 import com.example.friendfinder.data.User;
 import com.example.friendfinder.persistence.Firestore;
 import com.example.friendfinder.util.Util;
 import com.firebase.ui.auth.AuthUI;
 import com.firebase.ui.auth.IdpResponse;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.GeoPoint;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -37,7 +44,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, FriendListFragment.OnListFragmentInteractionListener {
+import static com.example.friendfinder.util.Util.GeoPointToLatLng;
+
+public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, FriendListFragment.OnListFragmentInteractionListener, PopupMenu.OnMenuItemClickListener {
 
     private static final String TAG = MapsActivity.class.getName();
 
@@ -49,10 +58,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private User user;
     private Marker selectedMarker;
+    private Marker tempMidwayPointMarker;
     private Map<String,Marker> markers;
+    private Map<String,Marker> meetupPoints;
+
     private BitmapDescriptor iconColorOnline;
     private BitmapDescriptor iconColorOffline;
     private BitmapDescriptor iconColorSelected;
+    private BitmapDescriptor iconColorMeetup;
     private Firestore firestore;
     private FirebaseUser firebaseUser;
 
@@ -67,7 +80,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         iconColorOnline      = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN);
         iconColorOffline     = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED);
         iconColorSelected    = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN);
+        iconColorMeetup    = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA);
+
         markers = new HashMap<>();
+        meetupPoints = new HashMap<>();
         this.firestore = new Firestore(this);
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
@@ -153,26 +169,51 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
                 @Override
                 public boolean onMarkerClick(Marker marker) {
-                    if(mMap != null) {
-                        if(selectedMarker == marker){
-                           // setSelectedMarker(null);
-                            return true;
-                        }
-                        if(selectedMarker != null){
-                            selectedMarker.setIcon(iconColorOffline);
-                            if(selectedMarker.getTag() != null){
-                                 if((boolean)selectedMarker.getTag()){
-                                    selectedMarker.setIcon(iconColorOnline);
+                    try {
+                        if (mMap != null) {
+                            if(marker.getTag() == "meetup"){
+                                setSelectedMarker(marker);
+                                marker.showInfoWindow();
+                                return true;
+                            }
+                            if (selectedMarker != null) {
+                                selectedMarker.setIcon(iconColorOffline);
+                                if (selectedMarker.getTag() != null) {
+                                    if ((boolean) selectedMarker.getTag()) {
+                                        selectedMarker.setIcon(iconColorOnline);
+                                    }
                                 }
                             }
+                            marker.setIcon(iconColorSelected);
+                            setSelectedMarker(marker);
+                            marker.showInfoWindow();
+                            return true;
                         }
-                        marker.setIcon(iconColorSelected);
-                        setSelectedMarker(marker);
-                        marker.showInfoWindow();
+                        return false;
+                    }catch (Exception ex){
+                        Log.e(TAG,"onMarkerClick: "+ex);
+                        return false;
+                    }
+                }
+            });
+            mMap.setOnMarkerDragListener(new GoogleMap.OnMarkerDragListener() {
+                @Override
+                public void onMarkerDragStart(Marker marker) {
+                    setSelectedMarker(marker);
+                }
 
-                    //    arrowFragment.updateArrow();
-                        return true;
-                    }return false;
+                @Override
+                public void onMarkerDrag(Marker marker) {
+                    getArrowFragment().getmViewModel().setActiveMarker(marker.getPosition());
+                }
+
+                @Override
+                public void onMarkerDragEnd(Marker marker) {
+                    //share location
+                    String ref = Util.getKeyByValue(meetupPoints,marker);
+                    GeoPoint loc = Util.LatLngToGeoPoint(marker.getPosition());
+                    firestore.updateMeetupPoint(loc,ref);
+                    getArrowFragment().getmViewModel().setActiveMarker(marker.getPosition());
                 }
             });
         } else {
@@ -229,9 +270,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         this.selectedMarker = selectedMarker;
 
         arrowFragment.setVisibility(true);
-
         User friend = user.findFriendByName(selectedMarker.getTitle());
-       // Log.e(TAG,selectedMarker.getTitle()+"  |  "+friend.getNickname());
 
         if(friend != null){
             arrowFragment.updateFriendName(friend.getNickname());
@@ -247,6 +286,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             arrowFragment.updateFriendName(selectedMarker.getTitle());
             arrowFragment.updateLastOnline("");
         }
+
         getArrowFragment().getmViewModel().setActiveMarker(selectedMarker.getPosition());
 
     }
@@ -350,5 +390,87 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onListFragmentInteraction(User item) {
         Log.v(TAG,"onListFragmentInteraction");
+    }
+
+    public void showMeetUpMenu(View v){
+        PopupMenu popup = new PopupMenu(this, v);
+
+        // This activity implements OnMenuItemClickListener
+        popup.setOnMenuItemClickListener(this);
+        popup.inflate(R.menu.meetup);
+        popup.show();
+
+    }
+
+    private void setAutomaticMidWayPoint(){
+        LatLng midWayPoint = ArrowViewModel.midPoint(Util.LocationToLatLng(locationMapAdapter.getLastLocation()),selectedMarker.getPosition());
+        Marker marker = mMap.addMarker(new MarkerOptions()
+                .position(midWayPoint)
+                .title("Meet-up point")
+                .icon(iconColorMeetup)
+                .draggable(true));
+
+        marker.setTag("meetup");
+        tempMidwayPointMarker = marker;
+        String friendUID;
+        try {
+            friendUID = user.findFriendByName(selectedMarker.getTitle()).getUID();
+        }catch (Exception ex){
+             friendUID = "";
+        }
+
+        firestore.addMeetupPoint(Util.LatLngToGeoPoint(midWayPoint),firebaseUser.getUid(),friendUID);
+        mMap.animateCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition.Builder().target(midWayPoint).zoom(16f).build()));
+    }
+
+    public void removeTempMarker(){
+        if(tempMidwayPointMarker != null) tempMidwayPointMarker.remove();
+    }
+
+    @Override
+    public boolean onMenuItemClick(MenuItem item) {
+        setAutomaticMidWayPoint();
+        return true;
+    /*    switch (item.getItemId()) {
+            case R.id.meetup_choose:
+                //pick meetup point on map
+                //archive(item);
+                //Toast.makeText(getApplicationContext(),"")
+                return true;
+            case R.id.meetup_automatic:
+                //generate meetup point
+                //delete(item);
+                setAutomaticMidWayPoint();
+                return true;
+            default:
+                return false;
+        }*/
+    }
+
+    public void addMeetupPoint(String ref,GeoPoint location){
+        LatLng loc = GeoPointToLatLng(location);
+        Marker marker = mMap.addMarker(new MarkerOptions()
+                .position(loc)
+                .title("Meet-up point")
+                .icon(iconColorMeetup)
+                .draggable(true));
+        marker.setTag("meetup");
+        meetupPoints.put(ref,marker);
+    }
+
+    public void updateMeetupPoint(String ref, GeoPoint location) {
+        LatLng loc = GeoPointToLatLng(location);
+        Marker marker = meetupPoints.get(ref);
+        if(marker != null){
+            marker.setPosition(loc);
+        }
+    }
+
+    public void removeMeetupPoint(String reference) {
+        Marker marker = meetupPoints.get(reference);
+        if(marker != null){
+            marker.remove();
+            meetupPoints.remove(reference);
+        }
     }
 }

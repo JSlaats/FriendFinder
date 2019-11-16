@@ -15,4 +15,6 @@
     <string name="menu_send">Send</string>
     <string name="title_activity_maps">Map</string>
     <string name="arrow">Arrow</string>
+    <string name="choose_on_map">Choose on map</string>
+    <string name="automatic">Automatic</string>
 </resources>

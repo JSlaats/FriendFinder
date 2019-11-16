@@ -15,7 +15,7 @@ import androidx.lifecycle.ViewModelProviders;
 import com.example.friendfinder.MapsActivity;
 import com.example.friendfinder.R;
 
-public class ArrowFragment extends Fragment  {
+public class ArrowFragment extends Fragment {
 
     private static final String TAG = ArrowFragment.class.getName();
     private ArrowViewModel mViewModel;
@@ -45,7 +45,8 @@ public class ArrowFragment extends Fragment  {
         mTxtFriendName = getView().findViewById(R.id.txtFriendName);
         mTxtLastOnline = getView().findViewById(R.id.txtLastOnline);
         mTxtDistance = getView().findViewById(R.id.txtDistance);
-
+        //TODO: hide button from the xml if meetpoint is selected
+        //TODO: Display with whom i share the marker
         this.activity = (MapsActivity) getActivity();
         activity.setArrowFragment(this);
 
@@ -100,6 +101,7 @@ public class ArrowFragment extends Fragment  {
     public void updateLastOnline(String lastOnline){
         mTxtLastOnline.setText(lastOnline);
     }
+
     public void setVisibility(boolean show){
         if(show) getView().setVisibility(View.VISIBLE);
         else getView().setVisibility(View.INVISIBLE);
