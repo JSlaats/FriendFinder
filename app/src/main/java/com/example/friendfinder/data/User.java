@@ -167,4 +167,10 @@ public class User {
         }
         return null;
     }
+    public Boolean friendsOnline(){
+        for(User friend : getFriends()){
+            if(friend.isOnline())return true;
+        }
+        return false;
+    }
 }

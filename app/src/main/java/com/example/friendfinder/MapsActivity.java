@@ -3,6 +3,7 @@ package com.example.friendfinder;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.Location;
 import android.os.Bundle;
 import android.text.format.DateUtils;
 import android.util.Log;
@@ -146,7 +147,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             // foreground service that has a foreground service type of "location".
             mMap.setMyLocationEnabled(true);
             this.locationMapAdapter = new LocationMapAdapter(this,mMap);
-            locationMapAdapter.startLocationUpdates();
+            this.locationMapAdapter.startLocationUpdates();
 
 
             mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
@@ -335,6 +336,16 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 Log.v(TAG,event.toString());
             }
         };
+    }
+    public void syncLocation(Location location){
+        try {
+            //only sync if friends are online to see the location change.
+            if (user.friendsOnline()) {
+                firestore.saveLocation(Util.LocationToLatLng(location));
+            }
+        }catch (Exception ex){
+            Log.e(TAG,"syncLocation failed, user probably null");
+        }
     }
     @Override
     public void onListFragmentInteraction(User item) {

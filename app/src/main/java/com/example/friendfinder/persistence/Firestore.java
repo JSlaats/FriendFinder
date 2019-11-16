@@ -196,6 +196,30 @@ public class Firestore {
                 });
         ;
     }
+    public void saveLocation(LatLng location){
+        User user = activity.getUser();
+        if(user == null){Log.v(TAG,"saveLocation: User is null.");return;}
 
+        Map<String,Object> data = new HashMap<>();
+        //only save location if its not null
+        if(location != null) {
+            data.put("lastLocation", new GeoPoint(location.latitude, location.longitude));
+        }
+        db.collection("users").document(user.getUID())
+                .update(data)
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Log.d(TAG, "saveLocation: Location succesfully saved in firestore!");
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.w(TAG, "saveLocation: Error saving Location to firestore", e);
+                    }
+                });
+        ;
+    }
 
 }

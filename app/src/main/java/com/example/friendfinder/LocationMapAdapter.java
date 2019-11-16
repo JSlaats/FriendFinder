@@ -65,6 +65,8 @@ public class LocationMapAdapter {
                 for (Location location : locationResult.getLocations()) {
                     // Update UI with location data
                     lastLocation = location;
+
+                    activity.syncLocation(lastLocation);
                     try {
                         activity.getArrowFragment().getmViewModel().setLastLocation(lastLocation);
                     }catch(Exception ignored){}
