@@ -19,7 +19,6 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
@@ -107,7 +106,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         marker.setIcon(iconColorSelected);
                         marker.showInfoWindow();
                         selectedMarker = marker;
-
+                        getArrowFragment().getmViewModel().setActiveMarker(selectedMarker.getPosition());
                     //    arrowFragment.updateArrow();
                         return true;
                     }return false;

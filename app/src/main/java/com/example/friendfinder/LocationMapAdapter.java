@@ -18,21 +18,19 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
 
-import java.util.Map;
-
 public class LocationMapAdapter {
 
     private static final String TAG = LocationMapAdapter.class.getName();
 
     private Marker marker;
-    private Activity activity;
+    private MapsActivity activity;
     private GoogleMap map;
     private FusedLocationProviderClient fusedLocationClient;
     private LocationCallback locationCallback;
     private Location lastLocation;
 
     public LocationMapAdapter(Activity activity, GoogleMap map) {
-        this.activity = activity;
+        this.activity = (MapsActivity) activity;
         this.map = map;
         this.fusedLocationClient = LocationServices.getFusedLocationProviderClient(activity);
     }
@@ -67,6 +65,7 @@ public class LocationMapAdapter {
                 for (Location location : locationResult.getLocations()) {
                     // Update UI with location data
                     lastLocation = location;
+                    activity.getArrowFragment().getmViewModel().setLastLocation(lastLocation);
                     doUiUpdate(new LatLng(location.getLatitude(),location.getLongitude()));
 
                 }
