@@ -73,9 +73,10 @@ public class User {
         if(!this.nickname.equals(user.nickname))
         setNickname(user.nickname);
 
-        if(this.lastLocation.getLatitude() != user.lastLocation.getLatitude() || this.lastLocation.getLongitude() != user.lastLocation.getLongitude())
-        setLastLocation(user.lastLocation);
-
+        if(user.lastLocation != null && this.lastLocation != null) {
+            if (this.lastLocation.getLatitude() != user.lastLocation.getLatitude() || this.lastLocation.getLongitude() != user.lastLocation.getLongitude())
+                setLastLocation(user.lastLocation);
+        }
         if(this.lastOnline != user.lastOnline)
         setLastOnline(user.lastOnline);
 
@@ -98,7 +99,7 @@ public class User {
 //        return lastLocation;
 //    }
     public LatLng getLastLocation(){
-        if(this.lastLocation == null)return null;
+        if(this.lastLocation == null)return new LatLng(0.0,0.0);
         return new LatLng(this.lastLocation.getLatitude(),this.lastLocation.getLongitude());
     }
 
