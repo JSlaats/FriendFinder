@@ -61,12 +61,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private Marker tempMidwayPointMarker;
     private Map<String,Marker> markers;
     private Map<String,Marker> meetupPoints;
-
     private BitmapDescriptor iconColorOnline;
     private BitmapDescriptor iconColorOffline;
     private BitmapDescriptor iconColorSelected;
     private BitmapDescriptor iconColorMeetup;
     private Firestore firestore;
+
     private FirebaseUser firebaseUser;
 
     private static final int RC_SIGN_IN = 123;
@@ -75,6 +75,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
+        
         arrowFragment = (ArrowFragment) getSupportFragmentManager().findFragmentById(R.id.arrow_fragment);
 
         iconColorOnline      = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN);
@@ -179,8 +180,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                             if (selectedMarker != null) {
                                 selectedMarker.setIcon(iconColorOffline);
                                 if (selectedMarker.getTag() != null) {
-                                    if ((boolean) selectedMarker.getTag()) {
-                                        selectedMarker.setIcon(iconColorOnline);
+                                    if (selectedMarker.getTag().getClass() == Boolean.class) {
+                                        if(selectedMarker.getTag().equals(true))
+                                         selectedMarker.setIcon(iconColorOnline);
                                     }
                                 }
                             }
