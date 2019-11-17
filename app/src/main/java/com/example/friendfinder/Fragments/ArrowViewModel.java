@@ -13,7 +13,7 @@ import android.util.Log;
 
 import androidx.lifecycle.ViewModel;
 
-import com.example.friendfinder.MapsActivity;
+import com.example.friendfinder.MainActivity;
 import com.google.android.gms.maps.model.LatLng;
 
 //compass to coordinates: https://stackoverflow.com/questions/4308262/calculate-compass-bearing-heading-to-location-in-android
@@ -23,7 +23,7 @@ public class ArrowViewModel extends ViewModel implements SensorEventListener {
     private SensorManager mSensorManager;
     private Sensor accelerometer;
     private Sensor magnetometer;
-    private MapsActivity activity;
+    private MainActivity activity;
     private float distance;
     private float[] mGravity;
     private float[] mGeomagnetic;
@@ -40,7 +40,7 @@ public class ArrowViewModel extends ViewModel implements SensorEventListener {
     private Handler mSensorHandler;
 
     //start sensors
-    void initSensors(MapsActivity activity) {
+    void initSensors(MainActivity activity) {
         Log.v(TAG,"Initiating sensors: ");
         this.activity = activity;
 

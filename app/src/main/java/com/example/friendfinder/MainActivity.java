@@ -52,9 +52,9 @@ import java.util.Map;
 
 import static com.example.friendfinder.util.Util.GeoPointToLatLng;
 
-public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, FriendListFragment.OnListFragmentInteractionListener, PopupMenu.OnMenuItemClickListener {
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, FriendListFragment.OnListFragmentInteractionListener, PopupMenu.OnMenuItemClickListener {
 
-    private static final String TAG = MapsActivity.class.getName();
+    private static final String TAG = MainActivity.class.getName();
 
     private GoogleMap mMap;
     private SupportMapFragment mapFragment;
@@ -193,21 +193,23 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 public boolean onMarkerClick(Marker marker) {
                     try {
                         if (mMap != null) {
-                            if(marker.getTag() == "meetup"){
-                                setSelectedMarker(marker);
-                                marker.showInfoWindow();
-                                return true;
-                            }
+                            //restore marker color
                             if (selectedMarker != null) {
-                                selectedMarker.setIcon(iconColorOffline);
                                 if (selectedMarker.getTag() != null) {
                                     if (selectedMarker.getTag().getClass() == Boolean.class) {
-                                        if(selectedMarker.getTag().equals(true))
-                                         selectedMarker.setIcon(iconColorOnline);
+                                        if(selectedMarker.getTag().equals(true)){
+                                            selectedMarker.setIcon(iconColorOnline);
+                                        }else{
+                                            selectedMarker.setIcon(iconColorOffline);
+                                        }
                                     }
                                 }
                             }
-                            marker.setIcon(iconColorSelected);
+                            //if marker that you select is a person, change marker color to selected
+                            if(marker.getTag() != "meetup"){
+                                marker.setIcon(iconColorSelected);
+                            }
+
                             setSelectedMarker(marker);
                             marker.showInfoWindow();
                             return true;
@@ -498,7 +500,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .addOnCompleteListener(new OnCompleteListener<Void>() {
                     public void onComplete(@NonNull Task<Void> task) {
                         // user is now signed out
-                        startActivity(new Intent(MapsActivity.this, MapsActivity.class));
+                        startActivity(new Intent(MainActivity.this, MainActivity.class));
                         finish();
                     }
                 });

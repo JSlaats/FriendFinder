@@ -12,11 +12,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.example.friendfinder.MapsActivity;
+import com.example.friendfinder.MainActivity;
 import com.example.friendfinder.R;
 import com.example.friendfinder.data.User;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 /**
@@ -74,7 +73,7 @@ public class FriendListFragment extends Fragment {
             } else {
                 recyclerView.setLayoutManager(new GridLayoutManager(context, mColumnCount));
             }
-            MapsActivity activity = (MapsActivity)getActivity();
+            MainActivity activity = (MainActivity)getActivity();
             recyclerView.setAdapter(new MyFriendListRecyclerViewAdapter(new ArrayList<User>(), mListener));
         }
         return view;

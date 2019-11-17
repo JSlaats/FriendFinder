@@ -6,7 +6,7 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.example.friendfinder.MapsActivity;
+import com.example.friendfinder.MainActivity;
 import com.example.friendfinder.data.User;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -33,9 +33,9 @@ import java.util.Map;
 public class Firestore {
     private FirebaseFirestore db;
     private static String TAG = "FireStore";
-    private MapsActivity activity;
+    private MainActivity activity;
 
-    public Firestore(MapsActivity activity) {
+    public Firestore(MainActivity activity) {
         this.db = FirebaseFirestore.getInstance();
         this.activity = activity;
     }
@@ -228,7 +228,7 @@ public class Firestore {
 
                 if (snapshot != null && snapshot.exists()) {
                     Log.d(TAG, "Current data: " + snapshot.getData());
-                    //get friend @ MapsActivity by id
+                    //get friend @ MainActivity by id
                     //update friend
                     for (User user : activity.getUser().getFriends()) {
                         if (user.getUID().equals(snapshot.getString("UID"))) {
