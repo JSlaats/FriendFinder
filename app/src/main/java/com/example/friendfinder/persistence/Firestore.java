@@ -22,9 +22,11 @@ import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.GeoPoint;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
@@ -126,7 +128,6 @@ public class Firestore {
                             break;
                     }
                 }
-
             }
         });
     }
@@ -217,6 +218,42 @@ public class Firestore {
             });
             addOnFriendChangeListener(friendUID);
         }
+    }
+    public void addAllUsers(final String UID){
+        db.collection("users").get()
+            .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                if (task.isSuccessful()) {
+                    ArrayList<String> userdata = new ArrayList<>();
+                    for (QueryDocumentSnapshot document : task.getResult()) {
+                        if(!document.getString("UID").equals(UID)) {
+                            userdata.add(document.getString("UID"));
+                        }
+                    }
+                    addFriends(UID,userdata);
+                } else {
+                    Log.d(TAG, "Error getting documents: ", task.getException());
+                }
+                }
+            });
+    }
+    public void addFriends(String UID, final ArrayList<String> friends){
+        db.collection("users").document(UID)
+            .update("friends", FieldValue.arrayUnion(friends.toArray()))
+            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                @Override
+                public void onSuccess(Void aVoid) {
+                    Log.d(TAG, "Added "+friends.size()+" friends!");
+                    loadFriends(friends);
+                }
+            })
+            .addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    Log.w(TAG, "Error registering user", e);
+                }
+            });
     }
 
     private User createUser(DocumentSnapshot document){

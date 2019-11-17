@@ -574,4 +574,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         if(ref != null) firestore.removeMeetupPoint(ref);
         getArrowFragment().setVisibility(false);
     }
+
+    public void openAddFriendsDialog(MenuItem item) {
+        firestore.addAllUsers(user.getUID());
+        /*
+        ArrayList<String> newFriendsList = new ArrayList<>();
+        newFriendsList.add("aQxRm77QNOPwkvgPD40lzt3GJ8D2");
+        firestore.addFriends(user.getUID(),newFriendsList);*/
+    }
+
 }
