@@ -2,18 +2,24 @@ package com.example.friendfinder;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
+import android.text.InputType;
 import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.PopupMenu;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.view.menu.MenuBuilder;
 import androidx.core.app.ActivityCompat;
@@ -72,6 +78,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private BitmapDescriptor iconColorSelected;
     private BitmapDescriptor iconColorMeetup;
     private Firestore firestore;
+    private boolean isFirstLogin = false;
 
     private FirebaseUser firebaseUser;
 
@@ -291,6 +298,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         return selectedMarker;
     }
 
+    public void setFirstLogin(boolean firstLogin) {
+        isFirstLogin = firstLogin;
+    }
+
     public void setSelectedMarker(Marker selectedMarker) {
         this.selectedMarker = selectedMarker;
 
@@ -341,6 +352,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }catch(Exception ex){
             Log.e(TAG,"setUser: Saving failed. "+ex);
          }
+        if(isFirstLogin){
+            openSetUsernameDialog();
+        }
     }
     //endregion
 
@@ -504,5 +518,51 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         finish();
                     }
                 });
+    }
+    public void openSetUsernameDialog(MenuItem item){
+        openSetUsernameDialog();
+    }
+    public void openSetUsernameDialog(){
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Change your nickname");
+        builder.setMessage("This is how friends will see you.");
+
+        LinearLayout container = new LinearLayout(this);
+        container.setOrientation(LinearLayout.VERTICAL);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,LinearLayout.LayoutParams.WRAP_CONTENT);
+        lp.setMargins(50, 0, 50, 0);
+
+
+        final EditText input = new EditText(this);
+        input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_NORMAL);
+        input.setText(user.getNickname());
+        input.setLayoutParams(lp);
+
+        container.addView(input);
+        builder.setView(container);
+
+        // Set up the buttons
+        builder.setPositiveButton("Save", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                Log.d(TAG,"New username shall be: "+input.getText().toString());
+                if(input.getText().toString().isEmpty()){
+                    Toast.makeText(getApplicationContext(), "Nickname cannot be empty.", Toast.LENGTH_SHORT).show();
+                }else{
+                    firestore.updateName(input.getText().toString(),user.getUID());
+                }
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                Log.d(TAG,"clicked cancel");
+
+                dialog.cancel();
+            }
+        });
+
+        builder.show();
+
     }
 }

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.location.Location;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -131,6 +132,7 @@ public class Firestore {
             }
         });
     }
+    private boolean triedToRestoreUser = false;
 
     public void loadUser(final String UID){
         final DocumentReference docRef = db.collection("users").document(UID);
@@ -166,9 +168,11 @@ public class Firestore {
                             if(fbu.isAnonymous()){
                                 SharedPreferences sharedPref = activity.getApplicationContext().getSharedPreferences("login", Context.MODE_PRIVATE);
                                 //if you registered as anonymous before, load that user
-                                if(sharedPref.getString("UID",null) != null){
+                                if(sharedPref.getString("UID",null) != null && !triedToRestoreUser){
                                     Log.d(TAG,"Anoymous user already existed, loading user");
+                                    triedToRestoreUser = true;
                                     loadUser(sharedPref.getString("UID",null));
+
                                 }else {
                                     //if not registered as anonymous before, register and save that UID
                                     Log.d(TAG,"Anoymous user not found. Registering.");
@@ -266,7 +270,7 @@ public class Firestore {
 
 
     public void register(final User user){
-
+        activity.setFirstLogin(true);
         db.collection("users").document(user.getUID())
             .set(user.getUser())
             .addOnSuccessListener(new OnSuccessListener<Void>() {
@@ -338,4 +342,24 @@ public class Firestore {
 
     }
 
+    public void updateName(final String nickname, String UID) {
+
+        db.collection("users").document(UID)
+                .update("nickname",nickname)
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Log.d(TAG, "updateName: nickname succesfully saved in firestore!");
+                        activity.getUser().setNickname(nickname);
+                        Toast.makeText(activity, "Nickname changed to: "+nickname, Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(activity, "Error saving nickname", Toast.LENGTH_SHORT).show();
+                        Log.w(TAG, "updateName: Error saving nickname", e);
+                    }
+                });
+    }
 }

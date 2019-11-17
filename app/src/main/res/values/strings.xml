@@ -19,4 +19,5 @@
     <string name="automatic">Automatic</string>
     <string name="logout">Logout</string>
     <string name="signOut">Sign out</string>
+    <string name="change_nickname">Change nickname</string>
 </resources>
