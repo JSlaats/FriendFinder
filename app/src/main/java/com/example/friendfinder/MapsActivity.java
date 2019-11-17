@@ -82,11 +82,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         super.onCreate(savedInstanceState);
         firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
 
-        if(user == null) createSignInIntent();
+        if(firebaseUser == null) createSignInIntent();
         else onCreateContinue();
-
-
-
 
     }
 
@@ -131,7 +128,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public void createSignInIntent() {
-        // [START auth_fui_create_intent]
         // Choose authentication providers
         List<AuthUI.IdpConfig> providers = Arrays.asList(
                 new AuthUI.IdpConfig.GoogleBuilder().build(),
@@ -146,9 +142,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                         .build(),
                 RC_SIGN_IN);
-        // [END auth_fui_create_intent]
     }
-    // [START auth_fui_result]
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -189,6 +183,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             // App has permission to access location in the foreground. Start your
             // foreground service that has a foreground service type of "location".
             mMap.setMyLocationEnabled(true);
+
             this.locationMapAdapter = new LocationMapAdapter(this,mMap);
             this.locationMapAdapter.startLocationUpdates();
 
