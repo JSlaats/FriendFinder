@@ -512,6 +512,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     public void logout(MenuItem item) {
         Log.v(TAG,"Logout clicked");
+        if(getLocationMapAdapter().getLastLocation() != null) {
+            firestore.saveData(false, Util.LocationToLatLng(getLocationMapAdapter().getLastLocation()));
+            user.setOnline(false);
+            user.setLastOnline(new Date());
+        }
         AuthUI.getInstance()
                 .signOut(this)
                 .addOnCompleteListener(new OnCompleteListener<Void>() {
@@ -525,6 +530,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void openSetUsernameDialog(MenuItem item){
         openSetUsernameDialog();
     }
+    
     public void openSetUsernameDialog(){
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Change your nickname");
