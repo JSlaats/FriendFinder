@@ -29,7 +29,7 @@
         android:layout_centerHorizontal="true"
         android:layout_marginTop="5dp"
 
-        android:text="FriendName"
+        android:text="@string/friendname"
         android:textAlignment="center"
         android:textColor="@android:color/white"
         android:textSize="18sp"
@@ -43,7 +43,7 @@
         android:layout_below="@+id/txtFriendName"
         android:layout_marginTop="5dp"
 
-        android:text="Last seen: -"
+        android:text="@string/last_seen"
         android:textAlignment="center"
         android:textColor="@android:color/white"/>
 
@@ -56,7 +56,7 @@
         android:layout_marginTop="5dp"
         android:layout_marginBottom="5dp"
 
-        android:text="Distance"
+        android:text="@string/distance"
         android:textAlignment="center"
         android:textColor="@android:color/white"
         />
@@ -68,6 +68,17 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"
         android:onClick="showMeetUpMenu"
-        android:text="Meet-up"
+        android:text="@string/meet_up"
+        tools:ignore="OnClick" />
+
+    <Button
+        android:id="@+id/btnRemoveMeetUp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:onClick="removeMeetUp"
+        android:text="@string/remove"
+        android:visibility="invisible"
         tools:ignore="OnClick" />
 </RelativeLayout>

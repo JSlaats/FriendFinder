@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -23,6 +24,8 @@ public class ArrowFragment extends Fragment {
     private TextView mTxtFriendName;
     private TextView mTxtLastOnline;
     private TextView mTxtDistance;
+    private Button mBtnRemoveMeetUp;
+    private Button mBtnMeetUp;
 
     private MainActivity activity;
 
@@ -45,11 +48,26 @@ public class ArrowFragment extends Fragment {
         mTxtFriendName = getView().findViewById(R.id.txtFriendName);
         mTxtLastOnline = getView().findViewById(R.id.txtLastOnline);
         mTxtDistance = getView().findViewById(R.id.txtDistance);
+        mBtnRemoveMeetUp = getView().findViewById(R.id.btnRemoveMeetUp);
+        mBtnMeetUp = getView().findViewById(R.id.btnMeetUp);
+        mBtnMeetUp.setVisibility(View.INVISIBLE);
+        mBtnRemoveMeetUp.setVisibility(View.INVISIBLE);
+
         //TODO: hide button from the xml if meetpoint is selected
+        //TODO: display Remove button if meetpoint is selected
         //TODO: Display with whom i share the marker
         this.activity = (MainActivity) getActivity();
         activity.setArrowFragment(this);
+    }
 
+    public void switchMeetUpButtons(boolean isMeetUpPoint){
+        if(isMeetUpPoint){
+            mBtnMeetUp.setVisibility(View.INVISIBLE);
+            mBtnRemoveMeetUp.setVisibility(View.VISIBLE);
+        }else{
+            mBtnMeetUp.setVisibility(View.VISIBLE);
+            mBtnRemoveMeetUp.setVisibility(View.INVISIBLE);
+        }
     }
 //region lifecycle
     @Override

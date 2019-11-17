@@ -318,9 +318,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 isOnlineString = "Last Seen: "+lastSeenString;
             }
             arrowFragment.updateLastOnline(isOnlineString);
+            arrowFragment.switchMeetUpButtons(false);
         }else{
             arrowFragment.updateFriendName(selectedMarker.getTitle());
             arrowFragment.updateLastOnline("");
+            arrowFragment.switchMeetUpButtons(true);
+
         }
 
         getArrowFragment().getmViewModel().setActiveMarker(selectedMarker.getPosition());
@@ -564,5 +567,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         builder.show();
 
+    }
+
+    public void removeMeetUp(View view) {
+        String ref = Util.getKeyByValue(meetupPoints,getSelectedMarker());
+        if(ref != null) firestore.removeMeetupPoint(ref);
+        getArrowFragment().setVisibility(false);
     }
 }

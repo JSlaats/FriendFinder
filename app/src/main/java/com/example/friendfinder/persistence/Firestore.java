@@ -87,14 +87,12 @@ public class Firestore {
     }
 
     public void removeMeetupPoint(String ref) {
-        //TODO:: Implement this. Change meetpoint button to remove when meetpoint is selected and run this fucntion.
-
-
         db.collection("meetup").document(ref).delete()
             .addOnSuccessListener(new OnSuccessListener<Void>() {
                 @Override
                 public void onSuccess(Void aVoid) {
                     Log.d(TAG, "MeetupPoint Deleted!");
+
                 }
             })
             .addOnFailureListener(new OnFailureListener() {

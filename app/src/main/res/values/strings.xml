@@ -20,4 +20,9 @@
     <string name="logout">Logout</string>
     <string name="signOut">Sign out</string>
     <string name="change_nickname">Change nickname</string>
+    <string name="meet_up">Meet-up</string>
+    <string name="remove">Remove</string>
+    <string name="distance">Distance</string>
+    <string name="last_seen">Last seen: -</string>
+    <string name="friendname">FriendName</string>
 </resources>
