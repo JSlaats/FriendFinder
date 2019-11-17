@@ -97,7 +97,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             m.setOptionalIconsVisible(true);
 
         }
-
         return true;
     }
 
@@ -139,7 +138,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 AuthUI.getInstance()
                         .createSignInIntentBuilder()
                         .setAvailableProviders(providers)
-
+                        .setAlwaysShowSignInMethodScreen(true)
+                        .setIsSmartLockEnabled(false)
                         .build(),
                 RC_SIGN_IN);
     }
@@ -155,7 +155,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 // Successfully signed in
                 firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
                 onCreateContinue();
-                // ...
             } else {
                 // Sign in failed. If response is null the user canceled the
                 // sign-in flow using the back button. Otherwise check
@@ -164,7 +163,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         }
     }
-    // [END auth_fui_result]
     /**
      * Manipulates the map once available.
      * This callback is triggered when the map is ready to be used.
@@ -183,6 +181,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             // App has permission to access location in the foreground. Start your
             // foreground service that has a foreground service type of "location".
             mMap.setMyLocationEnabled(true);
+            LatLng defaultLocation = new LatLng(51.4577655,5.4820149);
+            mMap.animateCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition.Builder().target(defaultLocation).zoom(11.0f).build()));
 
             this.locationMapAdapter = new LocationMapAdapter(this,mMap);
             this.locationMapAdapter.startLocationUpdates();
@@ -193,7 +193,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 public boolean onMarkerClick(Marker marker) {
                     try {
                         if (mMap != null) {
-                            //restore marker color
+                            //restore marker color if marker is a person
                             if (selectedMarker != null) {
                                 if (selectedMarker.getTag() != null) {
                                     if (selectedMarker.getTag().getClass() == Boolean.class) {
@@ -286,7 +286,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 //endregion
 
-    //region Getters and Setters
+//region Getters and Setters
     public Marker getSelectedMarker() {
         return selectedMarker;
     }
@@ -444,7 +444,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
              friendUID = "";
         }
 
-        firestore.addMeetupPoint(Util.LatLngToGeoPoint(midWayPoint),firebaseUser.getUid(),friendUID);
+        firestore.addMeetupPoint(Util.LatLngToGeoPoint(midWayPoint),user.getUID(),friendUID);
         mMap.animateCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition.Builder().target(midWayPoint).zoom(16f).build()));
     }
 

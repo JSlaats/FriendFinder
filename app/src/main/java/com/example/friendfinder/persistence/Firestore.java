@@ -1,5 +1,7 @@
 package com.example.friendfinder.persistence;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.location.Location;
 import android.util.Log;
 
@@ -158,9 +160,27 @@ public class Firestore {
                     } else {
                         Log.d(TAG, "No such document");
                         FirebaseUser fbu = FirebaseAuth.getInstance().getCurrentUser();
+
                         //register user
                         if(fbu != null) {
-                            register(new User(fbu.getUid(), fbu.getDisplayName()));
+                            if(fbu.isAnonymous()){
+                                SharedPreferences sharedPref = activity.getApplicationContext().getSharedPreferences("login", Context.MODE_PRIVATE);
+                                //if you registered as anonymous before, load that user
+                                if(sharedPref.getString("UID",null) != null){
+                                    Log.d(TAG,"Anoymous user already existed, loading user");
+                                    loadUser(sharedPref.getString("UID",null));
+                                }else {
+                                    //if not registered as anonymous before, register and save that UID
+                                    Log.d(TAG,"Anoymous user not found. Registering.");
+
+                                    register(new User(fbu.getUid(), "anon-"+new Date().getTime()));
+                                    sharedPref.edit().putString("UID",fbu.getUid()).apply();
+                                }
+                            }else{
+                                //Logged in with google, making new account
+                                Log.d(TAG,"Logged in with google, making new account.");
+                                register(new User(fbu.getUid(), fbu.getDisplayName()));
+                            }
                         }
                     }
                 } else {
@@ -246,6 +266,7 @@ public class Firestore {
 
 
     public void register(final User user){
+
         db.collection("users").document(user.getUID())
             .set(user.getUser())
             .addOnSuccessListener(new OnSuccessListener<Void>() {
