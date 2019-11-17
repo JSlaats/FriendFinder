@@ -17,4 +17,6 @@
     <string name="arrow">Arrow</string>
     <string name="choose_on_map">Choose on map</string>
     <string name="automatic">Automatic</string>
+    <string name="logout">Logout</string>
+    <string name="signOut">Sign out</string>
 </resources>

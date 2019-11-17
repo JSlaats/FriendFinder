@@ -86,6 +86,7 @@ public class User {
     }
 
     public String getNickname() {
+        if(nickname.isEmpty())return "anonymous";
         return nickname;
     }
 

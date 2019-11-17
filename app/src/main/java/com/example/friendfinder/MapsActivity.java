@@ -1,17 +1,21 @@
 package com.example.friendfinder;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
 import android.text.format.DateUtils;
 import android.util.Log;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.PopupMenu;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.view.menu.MenuBuilder;
 import androidx.core.app.ActivityCompat;
 
 import com.example.friendfinder.Fragments.ArrowFragment;
@@ -32,6 +36,8 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.GeoPoint;
@@ -74,8 +80,33 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+
+        if(user == null) createSignInIntent();
+        else onCreateContinue();
+
+
+
+
+    }
+
+    @SuppressLint("RestrictedApi")
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main, menu);
+
+        if(menu instanceof MenuBuilder){
+            MenuBuilder m = (MenuBuilder) menu;
+            m.setOptionalIconsVisible(true);
+
+        }
+
+        return true;
+    }
+
+    private void onCreateContinue(){
         setContentView(R.layout.activity_maps);
-        
+
         arrowFragment = (ArrowFragment) getSupportFragmentManager().findFragmentById(R.id.arrow_fragment);
 
         iconColorOnline      = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN);
@@ -90,17 +121,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-        mapFragment.getView().setVisibility(View.INVISIBLE);
+        //mapFragment.getView().setVisibility(View.INVISIBLE);
 
         initFriendChangedListener();
 
-        firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
-
-        if(user == null) createSignInIntent();
-        else onCreateContinue();
-
-    }
-    private void onCreateContinue(){
         mapFragment.getView().setVisibility(View.VISIBLE);
         //load user data
         firestore.loadUser(firebaseUser.getUid());
@@ -110,14 +134,16 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         // [START auth_fui_create_intent]
         // Choose authentication providers
         List<AuthUI.IdpConfig> providers = Arrays.asList(
-                new AuthUI.IdpConfig.GoogleBuilder().build()
-        );
+                new AuthUI.IdpConfig.GoogleBuilder().build(),
+                new AuthUI.IdpConfig.AnonymousBuilder().build()
+                );
 
         // Create and launch sign-in intent
         startActivityForResult(
                 AuthUI.getInstance()
                         .createSignInIntentBuilder()
                         .setAvailableProviders(providers)
+
                         .build(),
                 RC_SIGN_IN);
         // [END auth_fui_create_intent]
@@ -431,22 +457,16 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public boolean onMenuItemClick(MenuItem item) {
-        setAutomaticMidWayPoint();
-        return true;
-    /*    switch (item.getItemId()) {
+
+        switch (item.getItemId()) {
             case R.id.meetup_choose:
-                //pick meetup point on map
-                //archive(item);
-                //Toast.makeText(getApplicationContext(),"")
-                return true;
             case R.id.meetup_automatic:
-                //generate meetup point
-                //delete(item);
                 setAutomaticMidWayPoint();
                 return true;
+
             default:
                 return false;
-        }*/
+        }
     }
 
     public void addMeetupPoint(String ref,GeoPoint location){
@@ -474,5 +494,18 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             marker.remove();
             meetupPoints.remove(reference);
         }
+    }
+
+    public void logout(MenuItem item) {
+        Log.v(TAG,"Logout clicked");
+        AuthUI.getInstance()
+                .signOut(this)
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    public void onComplete(@NonNull Task<Void> task) {
+                        // user is now signed out
+                        startActivity(new Intent(MapsActivity.this, MapsActivity.class));
+                        finish();
+                    }
+                });
     }
 }
