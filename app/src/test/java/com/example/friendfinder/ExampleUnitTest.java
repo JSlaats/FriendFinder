@@ -1,11 +1,8 @@
 package com.example.friendfinder;
 
-import com.example.friendfinder.data.User;
-import com.example.friendfinder.persistence.Firestore;
-
 import org.junit.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 /**
  * Example local unit test, which will execute on the development machine (host).
@@ -18,10 +15,5 @@ public class ExampleUnitTest {
         assertEquals(4, 2 + 2);
     }
 
-    @Test
-    public void testFirestoreRegister() {
-//        User user = new User("31600000000","Test User");
-//        Firestore firestore = new Firestore();
-//        firestore.register(user);
-    }
+
 }

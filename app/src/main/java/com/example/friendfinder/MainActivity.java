@@ -190,6 +190,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             mMap.setMyLocationEnabled(true);
             LatLng defaultLocation = new LatLng(51.4577655,5.4820149);
             mMap.animateCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition.Builder().target(defaultLocation).zoom(11.0f).build()));
+          //  mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
 
             this.locationMapAdapter = new LocationMapAdapter(this,mMap);
             this.locationMapAdapter.startLocationUpdates();
@@ -530,7 +531,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void openSetUsernameDialog(MenuItem item){
         openSetUsernameDialog();
     }
-    
+
     public void openSetUsernameDialog(){
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Change your nickname");
